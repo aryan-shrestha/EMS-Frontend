@@ -14,12 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LeaveRequest } from "@/types/interfaces"; // Ensure this interface is well-defined
 
-import axios from "@/axios/instance";
 import NepaliDate from "nepali-date-converter";
-import React, { useEffect, useState, useMemo } from "react";
-import { toast } from "sonner";
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -32,41 +29,28 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-const currentNepaliDate = new NepaliDate(new Date());
+import { LeaveRequest } from "@/types/interfaces/LeaveTrackerTypes";
 
 const getNepaliYears = (): number[] => {
   const currentYear = new NepaliDate(new Date()).getYear();
   return Array.from({ length: 5 }, (_, i) => currentYear - i);
 };
 
-const LeaveTable: React.FC = () => {
-  const [leavesList, setLeavesList] = useState<LeaveRequest[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [year, setYear] = useState<string>(
-    currentNepaliDate.getYear().toString()
-  );
+interface LeaveTableProps {
+  leaveRequests: LeaveRequest[];
+  isLoading: boolean;
+  year: string;
+  setYear: (value: string) => void;
+}
 
-  const nepaliYears = useMemo(() => getNepaliYears(), []);
-
-  const fetchLeaveRequests = async () => {
-    setIsLoading(true);
-    try {
-      const response = await axios.get<LeaveRequest[]>(
-        `/leave-tracker/?year=${year}` // Add year and month filters to the API call
-      );
-      setLeavesList(response.data);
-    } catch (error) {
-      console.error("Error fetching leave requests:", error);
-      toast.error("Error occurred while fetching leave requests.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLeaveRequests();
-  }, [year]);
+const LeaveTable: React.FC<LeaveTableProps> = ({
+  leaveRequests,
+  isLoading,
+  year,
+  setYear,
+}) => {
+  const nepaliYears = React.useMemo(() => getNepaliYears(), []);
+  console.log(leaveRequests);
 
   return (
     <Card>
@@ -95,14 +79,13 @@ const LeaveTable: React.FC = () => {
       <CardContent>
         <ScrollArea className="h-[200px] md:h-[250px] xl:h-[350px]">
           {isLoading ? (
-            // Replace with a better loading indicator
             <div
               className="flex justify-center items-center h-[200px] md:h-[250px] xl:h-[350px]"
               aria-label="Loading attendance data"
             >
               <Loader2 className="animate-spin" />
             </div>
-          ) : leavesList.length === 0 ? (
+          ) : leaveRequests.length === 0 ? (
             <div>No leave requests found.</div>
           ) : (
             <Table>
@@ -117,7 +100,7 @@ const LeaveTable: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {leavesList.map((leave) => (
+                {leaveRequests?.map((leave) => (
                   <TableRow key={leave.id}>
                     <TableCell className="py-4">
                       {format(new Date(leave.created_at), "yyyy-MM-dd, HH:mm")}
@@ -152,7 +135,7 @@ const LeaveTable: React.FC = () => {
         </ScrollArea>
       </CardContent>
       <CardFooter>
-        <small>{leavesList.length} leave requests</small>
+        <small>{leaveRequests.length} leave requests</small>
       </CardFooter>
     </Card>
   );

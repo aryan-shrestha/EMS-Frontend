@@ -22,9 +22,6 @@ export interface Attendance {
   check_out_lng?: string | null;
   organization: number;
   employee: number;
-  has_checked_in: boolean | null;
-  total_present_days: number;
-  average_working_hour: number;
 }
 
 interface AttendanceMonthData {

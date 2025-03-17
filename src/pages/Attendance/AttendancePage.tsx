@@ -1,8 +1,7 @@
-import { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { CalendarCheck, Hourglass, LogIn, Timer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-import AttendanceContext from "@/context/AttendanceContext";
 import AuthContext from "@/context/AuthContext";
 import CheckInBtn from "@/custom-components/Attendance/CheckInBtn";
 import WidgetCard from "@/custom-components/WidgetCard/WidgetCard";
@@ -10,6 +9,9 @@ import WidgetCard from "@/custom-components/WidgetCard/WidgetCard";
 import AttendanceChart from "@/custom-components/Attendance/AttendanceChart";
 import WorkingHourChart from "@/custom-components/Attendance/WorkingHourChart";
 import AttendanceTable from "@/custom-components/Attendance/AttendanceTable";
+import { Attendance } from "@/types/interfaces";
+import { GET } from "@/axios/instance";
+import NepaliDate from "nepali-date-converter";
 
 const formatTime = (timeString: string): string => {
   const [hour, minute] = timeString.split(":");
@@ -19,10 +21,38 @@ const formatTime = (timeString: string): string => {
 
 const AttendancePage = () => {
   const auth = useContext(AuthContext);
-  const attendanceContext = useContext(AttendanceContext);
+  const [attendanceData, setAttendanceData] = React.useState<Attendance[]>([]);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+  const [selectedDate, setSelectedDate] = React.useState({
+    year: new NepaliDate().getYear().toString(),
+    month: (new NepaliDate().getMonth() + 1).toString(),
+  });
+
+  const fetchAttendanceData = async () => {
+    setIsLoading(true);
+    await GET(
+      `attendance/my/`,
+      {
+        params: selectedDate,
+      },
+      (data: Attendance[]) => {
+        setAttendanceData(data);
+        setIsLoading(false);
+      }
+    );
+  };
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, [selectedDate]);
+
+  const todayAttendance = attendanceData.find(
+    (attendance) => attendance.date === NepaliDate.now().format("YYYY-MM-DD")
+  );
 
   let checkInTime = formatTime(
-    attendanceContext?.attendance?.check_ins_outs?.[0]?.check_in ?? ""
+    todayAttendance?.check_ins_outs?.[0]?.check_in ?? ""
   );
 
   return (
@@ -34,10 +64,7 @@ const AttendancePage = () => {
               <h1 className="text-2xl font-bold capitalize text-gray-900 dark:text-white">
                 Good morning {auth?.userDetail?.first_name} !
               </h1>
-              <CheckInBtn
-                isAttendanceLoading={attendanceContext?.isAttendanceLoading}
-                attendance={attendanceContext?.attendance}
-              />
+              <CheckInBtn />
             </div>
           </CardContent>
         </Card>
@@ -54,7 +81,7 @@ const AttendancePage = () => {
         <WidgetCard
           title="Attendance"
           icon={CalendarCheck}
-          value={`${attendanceContext?.attendance?.total_present_days} days`}
+          value="-"
           valueDescription="No of days present in current month"
         />
       </div>
@@ -62,7 +89,7 @@ const AttendancePage = () => {
         <WidgetCard
           title="Avg. working hour"
           icon={Timer}
-          value={`${attendanceContext?.attendance?.average_working_hour}`}
+          value="-"
           valueDescription="Average working hour of current month"
         />
       </div>
@@ -70,8 +97,8 @@ const AttendancePage = () => {
         <WidgetCard
           title="Working hour"
           icon={Hourglass}
-          value={attendanceContext?.attendance?.total_working_hours.duration}
-          valueDescription={`${attendanceContext?.attendance?.total_working_hours.percentage}% of Working hour`}
+          value={todayAttendance?.total_working_hours.duration}
+          valueDescription={`${todayAttendance?.total_working_hours.percentage}% of Working hour`}
         />
       </div>
       <div className="md:col-span-2 lg:col-span-1 xl:col-span-2">
@@ -81,7 +108,12 @@ const AttendancePage = () => {
         <WorkingHourChart />
       </div>
       <div className="md:col-span-2 xl:col-span-4">
-        <AttendanceTable />
+        <AttendanceTable
+          attendanceData={attendanceData}
+          isLoading={isLoading}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+        />
       </div>
     </div>
   );

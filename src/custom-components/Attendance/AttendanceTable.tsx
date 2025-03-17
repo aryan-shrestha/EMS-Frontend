@@ -3,19 +3,11 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import {
   Select,
   SelectContent,
@@ -23,22 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Loader2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
-import { HoverCardContent } from "@/components/ui/hover-card";
+
 import { Attendance } from "@/types/interfaces";
-import axios from "@/axios/instance";
-import { toast } from "sonner";
 import NepaliDate from "nepali-date-converter";
+import Table, { Column } from "../Table/Table";
 
 const nepaliMonths = [
   "Baisakh",
@@ -60,51 +42,111 @@ const getNepaliYears = () => {
   return Array.from({ length: 5 }, (_, i) => currentYear - i);
 };
 
-const TimeComponent = ({ time }: { time: string | null | undefined }) => (
-  <span>
-    {time ? new Date(`1970-01-01T${time}Z`).toLocaleTimeString() : "-"}
-  </span>
-);
+const TimeComponent = ({ time }: { time: string | null | undefined }) => {
+  if (!time) return <span>-</span>;
+  const [hours, minutes, seconds] = time.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, seconds || 0, 0);
+  return <span>{date.toLocaleTimeString()}</span>;
+};
 
-const AttendanceStatusBadge = ({ isPresent }: { isPresent: boolean }) => (
-  <Badge variant={isPresent ? "default" : "secondary"}>
-    {isPresent ? "Present" : "Absent"}
+const IsRemoteStatusBadge = ({
+  isRemote,
+  shiftCoverage,
+}: {
+  isRemote: boolean;
+  shiftCoverage: number;
+}) => {
+  let isPresent = shiftCoverage > 30;
+  if (isPresent && isRemote) {
+    return <Badge variant={"secondary"}>Remote</Badge>;
+  } else if (isPresent && !isRemote) {
+    return <Badge variant={"default"}>In-Site</Badge>;
+  } else {
+    return <>-</>;
+  }
+};
+
+const AttendanceStatusBadge = ({
+  shiftCoverage,
+}: {
+  shiftCoverage: number;
+}) => (
+  <Badge variant={shiftCoverage > 30 ? "default" : "secondary"}>
+    {shiftCoverage > 30 ? "Present" : "Absent"}
   </Badge>
 );
 
-const AttendanceTable: React.FC = () => {
-  const [attendanceData, setAttendanceData] = useState<Attendance[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState({
-    year: new NepaliDate().getYear().toString(),
-    month: (new NepaliDate().getMonth() + 1).toString(),
-  });
+interface AttendanceTableProps {
+  attendanceData: Attendance[];
+  isLoading: boolean;
+  selectedDate: { year: string; month: string };
+  setSelectedDate: ({ year, month }: { year: string; month: string }) => void;
+}
 
-  const fetchAttendanceList = async () => {
-    setIsLoading(true);
-    try {
-      const { data } = await axios.get<Attendance[]>(`attendance/my/`, {
-        params: selectedDate,
-      });
-      setAttendanceData(data);
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching attendance data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAttendanceList();
-  }, [selectedDate]);
+const AttendanceTable: React.FC<AttendanceTableProps> = ({
+  attendanceData,
+  isLoading,
+  selectedDate,
+  setSelectedDate,
+}) => {
+  const columns: Column<Attendance>[] = [
+    { key: "date", header: "Date" },
+    {
+      key: "check_in_lat",
+      header: "Check in",
+      render(_, row) {
+        return <TimeComponent time={row.check_ins_outs[0]?.check_in} />;
+      },
+    },
+    {
+      key: "check_out_lat",
+      header: "Check Out",
+      render(_, row) {
+        let lastIndex = row.check_ins_outs.length - 1;
+        return (
+          <TimeComponent time={row.check_ins_outs[lastIndex]?.check_out} />
+        );
+      },
+    },
+    {
+      key: "check_ins_outs",
+      header: "Status",
+      render(_, row) {
+        return (
+          <AttendanceStatusBadge
+            shiftCoverage={row.total_working_hours.percentage}
+          />
+        );
+      },
+    },
+    {
+      key: "is_remote",
+      header: "Is remote",
+      render(_, row) {
+        return (
+          <IsRemoteStatusBadge
+            isRemote={row.is_remote}
+            shiftCoverage={row.total_working_hours.percentage}
+          />
+        );
+      },
+    },
+    {
+      key: "total_working_hours",
+      header: "Total working hour",
+      render(_, row) {
+        return row.total_working_hours.duration;
+      },
+    },
+  ];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Monthly Attendance</CardTitle>
         <CardDescription>
-          Attendance for {nepaliMonths[parseInt(selectedDate.month) - 1]}.
+          {/* Attendance for {nepaliMonths[parseInt(selectedDate?.month) - 1]}. */}
         </CardDescription>
         <form className="flex gap-4 pt-2">
           <Select
@@ -145,163 +187,17 @@ const AttendanceTable: React.FC = () => {
       </CardHeader>
 
       <CardContent>
-        <ScrollArea className="h-[350px]">
+        <ScrollArea className="h-[200px] md:h-[250px] xl:h-[350px]">
           {isLoading ? (
             <div className="flex justify-center items-center h-full">
               <Loader2 className="animate-spin" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Working Hours</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Remote</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {attendanceData.map(
-                  ({
-                    date,
-                    total_working_hours,
-                    is_remote,
-                    check_ins_outs,
-                  }) => {
-                    const isPresent = total_working_hours.duration !== "-";
-                    return (
-                      <TableRow key={date}>
-                        <TableCell>{date}</TableCell>
-                        <TableCell>{total_working_hours.duration}</TableCell>
-                        <TableCell>
-                          <AttendanceStatusBadge isPresent={isPresent} />
-                        </TableCell>
-                        <TableCell>
-                          {isPresent ? (
-                            <Badge
-                              variant={is_remote ? "secondary" : "default"}
-                            >
-                              {is_remote ? "Remote" : "In-site"}
-                            </Badge>
-                          ) : (
-                            "-"
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Dialog>
-                            <DialogTrigger className="cursor-pointer">
-                              View Details
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Attendance Detail</DialogTitle>
-                              </DialogHeader>
-                              <Table>
-                                <TableBody>
-                                  <TableRow>
-                                    <TableCell className="font-semibold">
-                                      Date
-                                    </TableCell>
-                                    <TableCell>{date}</TableCell>
-                                  </TableRow>
-                                  <TableRow>
-                                    <TableCell className="font-semibold">
-                                      Status
-                                    </TableCell>
-                                    <TableCell>
-                                      <AttendanceStatusBadge
-                                        isPresent={isPresent}
-                                      />
-                                    </TableCell>
-                                  </TableRow>
-                                  <TableRow>
-                                    <TableCell className="font-semibold">
-                                      Location
-                                    </TableCell>
-                                    <TableCell>
-                                      {isPresent ? (
-                                        <Badge
-                                          variant={
-                                            is_remote ? "secondary" : "default"
-                                          }
-                                        >
-                                          {is_remote ? "Remote" : "In-site"}
-                                        </Badge>
-                                      ) : (
-                                        "-"
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                  <TableRow>
-                                    <TableCell className="font-semibold">
-                                      Working Hours
-                                    </TableCell>
-                                    <TableCell>
-                                      {isPresent ? (
-                                        <HoverCard>
-                                          <HoverCardTrigger>
-                                            <Progress
-                                              value={
-                                                total_working_hours.percentage
-                                              }
-                                            />
-                                          </HoverCardTrigger>
-                                          <HoverCardContent>
-                                            {total_working_hours.duration}
-                                          </HoverCardContent>
-                                        </HoverCard>
-                                      ) : (
-                                        "-"
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                </TableBody>
-                              </Table>
-                              {check_ins_outs.length > 0 ? (
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead>Check In</TableHead>
-                                      <TableHead>Check Out</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {check_ins_outs.map(
-                                      ({ id, check_in, check_out }) => (
-                                        <TableRow key={id}>
-                                          <TableCell>
-                                            <TimeComponent time={check_in} />
-                                          </TableCell>
-                                          <TableCell>
-                                            <TimeComponent time={check_out} />
-                                          </TableCell>
-                                        </TableRow>
-                                      )
-                                    )}
-                                  </TableBody>
-                                </Table>
-                              ) : (
-                                <small className="text-center">
-                                  No check-in data found.
-                                </small>
-                              )}
-                            </DialogContent>
-                          </Dialog>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  }
-                )}
-              </TableBody>
-            </Table>
+            <Table<Attendance> columns={columns} data={attendanceData} />
           )}
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </CardContent>
-      <CardFooter>
-        Total present days: {attendanceData[0]?.total_present_days || 0}
-      </CardFooter>
     </Card>
   );
 };

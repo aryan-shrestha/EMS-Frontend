@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
-import axiosInstance from "@/axios/instance";
+import { POST } from "@/axios/instance";
 
 // Define the  type for authentication context
 interface AuthContextType {
@@ -17,6 +17,7 @@ interface UserDetailType {
   jti: number;
   user_id: number;
   email: string;
+  employee_id: number;
   first_name: string;
   last_name: string;
   profile_picture: string;
@@ -35,6 +36,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   });
   const [userDetail, setUserDetail] = useState<UserDetailType | null>(null);
 
+  const onLoginSuccess = (data: Record<string, any>) => {
+    localStorage.setItem("access", data.access);
+    localStorage.setItem("refresh", data.refresh);
+    setUser(data.access);
+    window.location.href = "/";
+  };
+
   useEffect(() => {
     const access = localStorage.getItem("access");
 
@@ -45,19 +53,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    try {
-      const { data } = await axiosInstance.post("auth/token/", {
+    await POST(
+      "auth/token/",
+      {
         email,
         password,
-      });
-
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
-      setUser(data.access);
-      window.location.href = "/";
-    } catch (error) {
-      throw error;
-    }
+      },
+      onLoginSuccess
+    );
   };
 
   const logout = () => {

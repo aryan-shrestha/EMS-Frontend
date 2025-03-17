@@ -15,42 +15,39 @@ import {
   Login,
 } from "./pages";
 import { NotificationProvider } from "./context/NotificationContext";
-
-import { AttendanceProvider } from "./context/AttendanceContext";
+import { ModalProvider } from "./context/ModalContext";
 
 function App() {
   return (
     <AuthProvider>
-      <NotificationProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route
-                index
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="attendance"
-                element={
-                  <AttendanceProvider>
-                    <AttendancePage />
-                  </AttendanceProvider>
-                }
-              />
-              <Route path="feedback" element={<Feedback />} />
-              <Route path="leave-tracker" element={<LeaveTracker />}>
-                <Route path="take-leave" element={<LeaveRequestForm />} />
-                <Route path="leave-balance" element={<LeaveBalanceDialog />} />
+      <ModalProvider>
+        <NotificationProvider>
+          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route
+                  index
+                  element={
+                    <PrivateRoute>
+                      <Dashboard />
+                    </PrivateRoute>
+                  }
+                />
+                <Route path="attendance" element={<AttendancePage />} />
+                <Route path="feedback" element={<Feedback />} />
+                <Route path="leave-tracker" element={<LeaveTracker />}>
+                  <Route path="take-leave" element={<LeaveRequestForm />} />
+                  <Route
+                    path="leave-balance"
+                    element={<LeaveBalanceDialog />}
+                  />
+                </Route>
               </Route>
-            </Route>
-            <Route path="/login" element={<Login />} />
-          </Routes>
-        </ThemeProvider>
-      </NotificationProvider>
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </ThemeProvider>
+        </NotificationProvider>
+      </ModalProvider>
     </AuthProvider>
   );
 }

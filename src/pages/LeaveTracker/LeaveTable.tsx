@@ -6,20 +6,10 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 import NepaliDate from "nepali-date-converter";
 import React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+
 import {
   Select,
   SelectContent,
@@ -30,6 +20,10 @@ import {
 import { Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LeaveRequest } from "@/types/interfaces/LeaveTrackerTypes";
+import Table, { Column } from "../../custom-components/Table/Table";
+import { Badge } from "@/components/ui/badge";
+import { useModal } from "@/context/ModalContext";
+import LeaveRequestDetail from "./LeaveRequestDetail";
 
 const getNepaliYears = (): number[] => {
   const currentYear = new NepaliDate(new Date()).getYear();
@@ -41,6 +35,7 @@ interface LeaveTableProps {
   isLoading: boolean;
   year: string;
   setYear: (value: string) => void;
+  refreshData: () => void;
 }
 
 const LeaveTable: React.FC<LeaveTableProps> = ({
@@ -48,9 +43,73 @@ const LeaveTable: React.FC<LeaveTableProps> = ({
   isLoading,
   year,
   setYear,
+  refreshData,
 }) => {
   const nepaliYears = React.useMemo(() => getNepaliYears(), []);
-  console.log(leaveRequests);
+  const { openModal } = useModal();
+
+  const columns: Column<LeaveRequest>[] = [
+    {
+      key: "subject",
+      header: "Subject",
+      render(value, row) {
+        return (
+          <span
+            className="font-medium underline underline-offset-4 cursor-pointer"
+            onClick={() => {
+              openModal({
+                title: "Leave requests details",
+                description: "",
+                content: (
+                  <LeaveRequestDetail
+                    leaveRequestId={row.id}
+                    onCancel={refreshData}
+                  />
+                ),
+              });
+            }}
+          >
+            {value}
+          </span>
+        );
+      },
+    },
+    { key: "from_date", header: "Start date" },
+    { key: "till_date", header: "End date" },
+    {
+      key: "is_reviewed",
+      header: "Status",
+      render(value, _) {
+        return (
+          <Badge variant={value ? "default" : "secondary"}>
+            {value ? "Reviewed" : "Pending"}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "is_approved",
+      header: "Is Approved",
+      render(value, _) {
+        return (
+          <Badge variant={value ? "default" : "secondary"}>
+            {value ? "Approved" : "Declined"}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "is_paid",
+      header: "Status",
+      render(value, _) {
+        return (
+          <Badge variant={value ? "default" : "secondary"}>
+            {value ? "Paid" : "Unpaid"}
+          </Badge>
+        );
+      },
+    },
+  ];
 
   return (
     <Card>
@@ -88,54 +147,12 @@ const LeaveTable: React.FC<LeaveTableProps> = ({
           ) : leaveRequests.length === 0 ? (
             <div>No leave requests found.</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="">Created at</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>From</TableHead>
-                  <TableHead>No of days</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leaveRequests?.map((leave) => (
-                  <TableRow key={leave.id}>
-                    <TableCell className="py-4">
-                      {format(new Date(leave.created_at), "yyyy-MM-dd, HH:mm")}
-                    </TableCell>
-                    <TableCell className="py-4">{leave.subject}</TableCell>
-                    <TableCell className="py-4">
-                      {format(new Date(leave.from_date), "yyyy-MM-dd")}
-                    </TableCell>
-                    <TableCell className="py-4">{leave.no_days}</TableCell>
-                    <TableCell className="py-4">
-                      <Badge
-                        variant={leave.is_approved ? "default" : "secondary"}
-                      >
-                        {leave.is_approved ? "Approved" : "Pending"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        size={"sm"}
-                        onClick={() =>
-                          console.log(`View leave request ${leave.id}`)
-                        }
-                      >
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <Table<LeaveRequest> columns={columns} data={leaveRequests} />
           )}
         </ScrollArea>
       </CardContent>
       <CardFooter>
-        <small>{leaveRequests.length} leave requests</small>
+        <small>{leaveRequests.length} leave requests found</small>
       </CardFooter>
     </Card>
   );

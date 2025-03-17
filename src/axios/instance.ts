@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "sonner";
 
 const localhost = "http://127.0.0.1:8000/api/v2/";
 
@@ -46,3 +47,82 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+
+// Generic error handler function
+const handleApiError = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    const errorMessage =
+      error.response?.data?.error ||
+      error.response?.data.detail ||
+      "Something went wrong!";
+    toast.error(errorMessage);
+  } else {
+    toast.error("Something went wrong");
+  }
+};
+
+export const GET = async <T>(
+  url: string,
+  params: Record<string, any> = {},
+  callbackFn: (data: T) => void
+): Promise<void> => {
+  try {
+    const response = await axiosInstance.get<T>(url, { ...params });
+    callbackFn(response.data);
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+export const POST = async (
+  url: string,
+  payload: Record<string, any>,
+  callbackFn: (data: any) => void
+): Promise<void> => {
+  try {
+    const response = await axiosInstance.post(url, payload);
+    callbackFn(response.data);
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+export const PUT = async <T>(
+  url: string,
+  payload: Record<string, any>,
+  callbackFn: (data: T) => void
+): Promise<void> => {
+  try {
+    const response = await axiosInstance.put<T>(url, payload);
+    callbackFn(response.data);
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+// PATCH Request
+export const PATCH = async <T>(
+  url: string,
+  payload: Record<string, any>,
+  callbackFn: (data: T) => void
+): Promise<void> => {
+  try {
+    const response = await axiosInstance.patch<T>(url, payload);
+    callbackFn(response.data);
+  } catch (error) {
+    handleApiError(error);
+  }
+};
+
+// DELETE Request
+export const DELETE = async <T>(
+  url: string,
+  callbackFn: (data: T) => void
+): Promise<void> => {
+  try {
+    const response = await axiosInstance.delete<T>(url);
+    callbackFn(response.data);
+  } catch (error) {
+    handleApiError(error);
+  }
+};

@@ -1,36 +1,83 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, LogIn, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import AttendanceContext from "@/context/AttendanceContext";
 import NotificationContext from "@/context/NotificationContext";
 import { Attendance } from "@/types/interfaces";
+import useGeolocation from "@/hooks/useGeolocation";
+import { toast } from "sonner";
+import axios, { POST } from "@/axios/instance";
+import NepaliDate from "nepali-date-converter";
+import { isAxiosError } from "axios";
 
-interface CheckInBtnProps {
-  isAttendanceLoading: boolean | null | undefined;
-  attendance?: Attendance | null;
-}
+const hasCheckedIn = (attendance: Attendance | undefined): boolean =>
+  !!attendance?.check_ins_outs.some((item) => item.check_out === null);
 
-const CheckInBtn: React.FC<CheckInBtnProps> = ({
-  isAttendanceLoading,
-  attendance,
-}) => {
-  const attendanceContext = useContext(AttendanceContext);
+const CheckInBtn: React.FC = () => {
   const notificationContext = useContext(NotificationContext);
 
-  const handleOnClick = async () => {
-    if (attendanceContext?.attendance) {
-      await attendanceContext.handleCheckInOut(attendanceContext.attendance);
-      console.log("check in out success full");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { latitude, longitude, error: locationError } = useGeolocation();
+  const [isCheckedIn, setIsCheckedIn] = useState<boolean>(false);
 
-      await notificationContext?.fetchNotifications();
-    } else return;
+  const fetchAttendance = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `attendance/?date=${NepaliDate.now().format("YYYY-MM-DD")}`
+      );
+      setIsCheckedIn(hasCheckedIn(response.data));
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast.error(
+          `Error ${error.response?.status}: ${error.response?.data.error}`
+        );
+      } else {
+        toast.error("Something went wrong.");
+      }
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleOnClick = async () => {
+    let endpoint = isCheckedIn
+      ? "/attendance/check-out/"
+      : "/attendance/check-in/";
+
+    setIsLoading(true);
+    await POST(
+      endpoint,
+      {
+        latitude,
+        longitude,
+      },
+      (data) => {
+        notificationContext?.fetchNotifications();
+        setIsCheckedIn(hasCheckedIn(data));
+        let message = hasCheckedIn(data)
+          ? "Checked in successfully"
+          : "Checked out successfully";
+        toast.success(message);
+        setIsLoading(false);
+      }
+    );
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    locationError && toast.error(locationError);
+  }, [locationError]);
+
+  useEffect(() => {
+    fetchAttendance();
+  }, []);
 
   return (
     <Button
-      disabled={isAttendanceLoading ? isAttendanceLoading : false}
+      disabled={isLoading}
       onClick={() => handleOnClick()}
       className={cn(
         "cursor-pointer",
@@ -39,12 +86,12 @@ const CheckInBtn: React.FC<CheckInBtnProps> = ({
         "md:text-md md:px-8 md:py-4"
       )}
     >
-      {isAttendanceLoading ? (
+      {isLoading ? (
         <>
           <Loader2 className="animate-spin" />
           Please wait
         </>
-      ) : attendance?.has_checked_in ? (
+      ) : isCheckedIn ? (
         <>
           <LogOut />
           Check out

@@ -6,7 +6,6 @@ import {
   Hourglass,
   IndianRupee,
   Info,
-  Loader,
   Loader2,
   Timer,
 } from "lucide-react";

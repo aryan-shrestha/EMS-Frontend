@@ -10,8 +10,6 @@ import {
   Dashboard,
   Feedback,
   LeaveTracker,
-  LeaveRequestForm,
-  LeaveBalanceDialog,
   Login,
 } from "./pages";
 import { NotificationProvider } from "./context/NotificationContext";
@@ -35,13 +33,7 @@ function App() {
                 />
                 <Route path="attendance" element={<AttendancePage />} />
                 <Route path="feedback" element={<Feedback />} />
-                <Route path="leave-tracker" element={<LeaveTracker />}>
-                  <Route path="take-leave" element={<LeaveRequestForm />} />
-                  <Route
-                    path="leave-balance"
-                    element={<LeaveBalanceDialog />}
-                  />
-                </Route>
+                <Route path="leave-tracker" element={<LeaveTracker />} />
               </Route>
               <Route path="/login" element={<Login />} />
             </Routes>

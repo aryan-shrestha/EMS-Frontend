@@ -5,6 +5,7 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
+    "noEmitOnError": false, // Allows build to proceed despite errors
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

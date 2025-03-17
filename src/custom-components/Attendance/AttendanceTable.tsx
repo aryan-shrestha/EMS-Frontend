@@ -146,7 +146,7 @@ const AttendanceTable: React.FC<AttendanceTableProps> = ({
       <CardHeader>
         <CardTitle>Monthly Attendance</CardTitle>
         <CardDescription>
-          {/* Attendance for {nepaliMonths[parseInt(selectedDate?.month) - 1]}. */}
+          Attendance for {nepaliMonths[parseInt(selectedDate?.month) - 1]}
         </CardDescription>
         <form className="flex gap-4 pt-2">
           <Select

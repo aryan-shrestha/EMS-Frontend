@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import axios from "@/axios/instance";
+import axios from "@/axios/axios";
 
 import { toast } from "sonner";
 import { Notification } from "@/types/interfaces";

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { CalendarCheck, Hourglass, LogIn, Timer } from "lucide-react";
+import { CalendarCheck, Hourglass, Loader2, LogIn, Timer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 import AuthContext from "@/context/AuthContext";
@@ -10,7 +10,7 @@ import AttendanceChart from "@/custom-components/Attendance/AttendanceChart";
 import WorkingHourChart from "@/custom-components/Attendance/WorkingHourChart";
 import AttendanceTable from "@/custom-components/Attendance/AttendanceTable";
 import { Attendance } from "@/types/interfaces";
-import { GET } from "@/axios/instance";
+import { GET } from "@/axios/axios";
 import NepaliDate from "nepali-date-converter";
 
 const formatTime = (timeString: string): string => {
@@ -21,6 +21,9 @@ const formatTime = (timeString: string): string => {
 
 const AttendancePage = () => {
   const auth = useContext(AuthContext);
+  const [dashboardData, setDashboardData] = React.useState<any>(undefined);
+  const [isDashboardDataLoading, setIsDashboardDataLoading] =
+    React.useState<boolean>(false);
   const [attendanceData, setAttendanceData] = React.useState<Attendance[]>([]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
@@ -29,7 +32,7 @@ const AttendancePage = () => {
     month: (new NepaliDate().getMonth() + 1).toString(),
   });
 
-  const fetchAttendanceData = async () => {
+  const fetchAttendanceData = React.useCallback(async () => {
     setIsLoading(true);
     await GET(
       `attendance/my/`,
@@ -41,11 +44,23 @@ const AttendancePage = () => {
         setIsLoading(false);
       }
     );
+  }, [selectedDate]);
+
+  const fetchDashboardData = async () => {
+    setIsDashboardDataLoading(true);
+    await GET(`attendance/dashboard/`, {}, (data) => {
+      setDashboardData(data);
+      setIsDashboardDataLoading(false);
+    });
   };
 
   useEffect(() => {
     fetchAttendanceData();
   }, [selectedDate]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   const todayAttendance = attendanceData.find(
     (attendance) => attendance.date === NepaliDate.now().format("YYYY-MM-DD")
@@ -73,7 +88,7 @@ const AttendancePage = () => {
         <WidgetCard
           title="Check time"
           icon={LogIn}
-          value={checkInTime}
+          value={isLoading ? <Loader2 className="animate-spin" /> : checkInTime}
           valueDescription="Today's Check-In time"
         />
       </div>
@@ -81,7 +96,13 @@ const AttendancePage = () => {
         <WidgetCard
           title="Attendance"
           icon={CalendarCheck}
-          value="-"
+          value={
+            isDashboardDataLoading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              `${dashboardData?.present_days} Hrs`
+            )
+          }
           valueDescription="No of days present in current month"
         />
       </div>
@@ -89,7 +110,13 @@ const AttendancePage = () => {
         <WidgetCard
           title="Avg. working hour"
           icon={Timer}
-          value="-"
+          value={
+            isDashboardDataLoading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              `${dashboardData?.avg_working_hour} Hrs`
+            )
+          }
           valueDescription="Average working hour of current month"
         />
       </div>
@@ -102,10 +129,16 @@ const AttendancePage = () => {
         />
       </div>
       <div className="md:col-span-2 lg:col-span-1 xl:col-span-2">
-        <AttendanceChart />
+        <AttendanceChart
+          attendanceData={dashboardData?.yearly_attendance}
+          isLoading={isLoading}
+        />
       </div>
       <div className="md:col-span-2 lg:col-span-1 xl:col-span-1">
-        <WorkingHourChart />
+        <WorkingHourChart
+          attendanceData={dashboardData}
+          isLoading={isLoading}
+        />
       </div>
       <div className="md:col-span-2 xl:col-span-4">
         <AttendanceTable

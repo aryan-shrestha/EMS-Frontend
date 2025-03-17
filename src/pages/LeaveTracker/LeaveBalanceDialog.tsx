@@ -1,4 +1,4 @@
-import axios from "@/axios/instance";
+import axios from "@/axios/axios";
 import {
   Table,
   TableBody,

@@ -1,4 +1,4 @@
-import { DELETE, GET } from "@/axios/instance";
+import { DELETE, GET } from "@/axios/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

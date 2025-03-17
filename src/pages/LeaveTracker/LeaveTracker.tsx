@@ -12,7 +12,7 @@ import React, {
   useState,
 } from "react";
 import { Link, Outlet } from "react-router";
-import { GET } from "@/axios/instance";
+import { GET } from "@/axios/axios";
 import AuthContext from "@/context/AuthContext";
 import {
   LeaveBalance,
@@ -111,6 +111,7 @@ const LeaveTracker: React.FC = () => {
                 Good morning {auth?.userDetail?.first_name} !
               </h1>
               <Button
+                className="cursor-pointer"
                 onClick={() => {
                   openModal({
                     title: "Leave request",

@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, LucideIcon } from "lucide-react";
+import { ReactElement } from "react";
 
 interface WidgetCardProps {
   title: string;
   icon: LucideIcon;
-  value: string | undefined;
+  value: ReactElement | string | undefined;
   valueDescription: string | null | undefined;
 }
 

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
-import { POST } from "@/axios/instance";
+import { POST } from "@/axios/axios";
 
 // Define the  type for authentication context
 interface AuthContextType {

@@ -7,7 +7,7 @@ import NotificationContext from "@/context/NotificationContext";
 import { Attendance } from "@/types/interfaces";
 import useGeolocation from "@/hooks/useGeolocation";
 import { toast } from "sonner";
-import axios, { POST } from "@/axios/instance";
+import axios, { POST } from "@/axios/axios";
 import NepaliDate from "nepali-date-converter";
 import { isAxiosError } from "axios";
 

@@ -6,6 +6,8 @@ import {
   Hourglass,
   IndianRupee,
   Info,
+  Loader,
+  Loader2,
   Timer,
 } from "lucide-react";
 
@@ -14,27 +16,35 @@ import AuthContext from "@/context/AuthContext";
 import CheckInBtn from "@/custom-components/Attendance/CheckInBtn";
 import AttendanceTable from "@/custom-components/Attendance/AttendanceTable";
 import WidgetCard from "@/custom-components/WidgetCard/WidgetCard";
-import Chart from "@/custom-components/Attendance/AttendanceChart";
+import AttendanceChart from "@/custom-components/Attendance/AttendanceChart";
 import WorkingHourChart from "@/custom-components/Attendance/WorkingHourChart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { cn } from "@/lib/utils";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Attendance } from "@/types/interfaces";
 import NepaliDate from "nepali-date-converter";
 
-import { GET } from "@/axios/instance";
-import { LeaveRequest } from "@/types/interfaces/LeaveTrackerTypes";
+import { GET } from "@/axios/axios";
+import {
+  LeaveBalance,
+  LeaveRequest,
+} from "@/types/interfaces/LeaveTrackerTypes";
 import LeaveTable from "@/pages/LeaveTracker/LeaveTable";
+import { Attendance } from "@/types/interfaces";
 
 const currentNepaliDate = new NepaliDate(new Date());
 
 const Dashboard = () => {
   const auth = useContext(AuthContext);
-  const [attendanceData, setAttendanceData] = React.useState<Attendance[]>([]);
+  const [attendanceData, setAttendanceData] = React.useState<any>([]);
   const [leaveRequests, setLeaveRequests] = React.useState<LeaveRequest[]>([]);
+  const [_, setLeaveBalances] = React.useState<LeaveBalance[]>([]);
+  const [attendanceList, setAttendanceList] = React.useState<Attendance[]>([]);
+
   const [isAttendanceDataLoading, setIsAttendanceDataLoading] =
+    React.useState<boolean>(false);
+  const [isAttendanceListLoading, setIsAttendanceListLoading] =
     React.useState<boolean>(false);
   const [isLeaveRequestsLoading, setLeaveRequestLoading] =
     React.useState<boolean>(false);
@@ -51,9 +61,9 @@ const Dashboard = () => {
   const fetchAttendanceData = async () => {
     setIsAttendanceDataLoading(true);
     await GET(
-      `attendance/my/`,
+      `attendance/dashboard/`,
       { params: selectedDate },
-      (data: Attendance[]) => {
+      (data: any) => {
         setAttendanceData(data);
         setIsAttendanceDataLoading(false);
       }
@@ -72,25 +82,37 @@ const Dashboard = () => {
     );
   }, [leaveReqestYear]);
 
+  const fetchAttendanceList = React.useCallback(async () => {
+    setIsAttendanceListLoading(true);
+    await GET(
+      `attendance/my/`,
+      {
+        params: selectedDate,
+      },
+      (data: Attendance[]) => {
+        setAttendanceList(data);
+        setIsAttendanceListLoading(false);
+      }
+    );
+  }, [selectedDate]);
+
+  const fetchLeaveBalances = async () => {
+    await GET(`leave-tracker/leave-balances/`, {}, (data: LeaveBalance[]) => {
+      setLeaveBalances(data);
+    });
+  };
+
   useEffect(() => {
-    fetchAttendanceData();
+    fetchAttendanceList();
   }, [selectedDate]);
 
   useEffect(() => {
     fetchLeaveRequest();
   }, [leaveReqestYear]);
 
-  const getNoOfPresentDays = (attendanceData: Attendance[]): number => {
-    return attendanceData.reduce(
-      (count, item) =>
-        count + (item.total_working_hours.percentage > 0 ? 1 : 0),
-      0
-    );
-  };
-
-  const todayAttendance = attendanceData.find(
-    (attendance) => attendance.date === NepaliDate.now().format("YYYY-MM-DD")
-  );
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []);
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -109,9 +131,11 @@ const Dashboard = () => {
           title="Attendance"
           icon={CalendarCheck}
           value={
-            isAttendanceDataLoading
-              ? "-"
-              : `${getNoOfPresentDays(attendanceData)} days`
+            isAttendanceDataLoading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              `${attendanceData?.present_days} days`
+            )
           }
           valueDescription="No of days present in current month"
         />
@@ -120,7 +144,11 @@ const Dashboard = () => {
         <WidgetCard
           title="Avg. working hour"
           icon={Timer}
-          value="-"
+          value={
+            attendanceData?.avg_working_hour ?? (
+              <Loader2 className="animate-spin" />
+            )
+          }
           valueDescription="Average working hour of current month"
         />
       </div>
@@ -137,40 +165,48 @@ const Dashboard = () => {
           title="Working hour"
           icon={Hourglass}
           value={
-            isAttendanceDataLoading
-              ? "-"
-              : `${todayAttendance?.total_working_hours.duration}`
+            attendanceData?.attendance?.total_working_hours?.duration ?? (
+              <Loader2 className="animate-spin" />
+            )
           }
           valueDescription={`${
-            isAttendanceDataLoading
-              ? "-"
-              : todayAttendance?.total_working_hours.percentage
+            attendanceData?.attendance?.total_working_hours?.duration ?? "-"
           }% of Working hour`}
         />
       </div>
       <div className="md:col-span-2 lg:col-span-1 xl:col-span-2">
-        <Chart />
+        <AttendanceChart
+          attendanceData={attendanceData?.yearly_attendance}
+          isLoading={isAttendanceDataLoading}
+        />
       </div>
       <div className="md:col-span-2 lg:col-span-1 xl:col-span-1">
-        <WorkingHourChart />
+        <WorkingHourChart
+          attendanceData={attendanceData}
+          isLoading={isAttendanceDataLoading}
+        />
       </div>
       <div className="md:col-span-2 lg:col-span-1 xl:col-span-1">
         <TabsDemo />
       </div>
-      <div className="md:col-span-2 lg:col-span-1 xl:col-span-2">
+      <div className="md:col-span-2 lg:col-span-2 xl:col-span-2">
         <AttendanceTable
-          attendanceData={attendanceData}
-          isLoading={isAttendanceDataLoading}
+          attendanceData={attendanceList}
+          isLoading={isAttendanceListLoading}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
         />
       </div>
-      <div className="md:col-span-2 lg:col-span-1 xl:col-span-2">
+      <div className="md:col-span-2 lg:col-span-2 xl:col-span-2">
         <LeaveTable
           leaveRequests={leaveRequests}
           isLoading={isLeaveRequestsLoading}
           year={leaveReqestYear}
           setYear={setLeaveRequestYear}
+          refreshData={() => {
+            fetchLeaveBalances();
+            fetchLeaveRequest();
+          }}
         />
       </div>
     </div>

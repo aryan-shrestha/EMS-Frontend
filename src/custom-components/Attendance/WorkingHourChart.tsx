@@ -13,28 +13,36 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useTheme } from "@/theme/theme-provide";
 
-export default function WorkingHourChart() {
-  const { theme } = useTheme();
+import React from "react";
+import NepaliDate from "nepali-date-converter";
+import { Loader2 } from "lucide-react";
 
+interface WorkingChartProps {
+  isLoading: boolean;
+  attendanceData: any;
+}
+
+const currentDate = new NepaliDate();
+
+const WorkingChartProps: React.FC<WorkingChartProps> = ({
+  isLoading,
+  attendanceData,
+}) => {
   const chartData = [
     {
       label: "present",
-      monthlyWorkingHour: 77.5,
-      fill: theme == "dark" ? "#FFFF" : "#171717",
+      monthlyWorkingHour: attendanceData?.total_working_hour,
+      fill: "var(--chart-1)",
     },
     {
       label: "absent",
-      monthlyWorkingHour: 104.62,
-      fill: "#939395",
+      monthlyWorkingHour: attendanceData?.remaining_working_hour,
+      fill: "var(--chart-2)",
     },
   ];
 
   const chartConfig = {
-    monthlyWorkingHour: {
-      label: "Visitors",
-    },
     present: {
       label: "Present",
     },
@@ -47,26 +55,34 @@ export default function WorkingHourChart() {
     <Card>
       <CardHeader>
         <CardTitle>Monthly working hour </CardTitle>
-        <CardDescription>Falgun, 2081</CardDescription>
+        <CardDescription>{currentDate.format("MMMM, YYYY")}</CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square h-[200px] md:h-[250px] xl:h-[350px]"
         >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={chartData}
-              dataKey="monthlyWorkingHour"
-              nameKey="label"
-            />
-          </PieChart>
+          {isLoading ? (
+            <div className="h-full w-full flex items-center justify-center">
+              <Loader2 className="animate-spin" />
+            </div>
+          ) : (
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Pie
+                data={chartData}
+                dataKey="monthlyWorkingHour"
+                nameKey="label"
+              />
+            </PieChart>
+          )}
         </ChartContainer>
       </CardContent>
     </Card>
   );
-}
+};
+
+export default WorkingChartProps;

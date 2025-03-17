@@ -106,14 +106,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-
-
-
-
-siderbar = primary-foreground
-siderbar-foreground = foreground
-sidebar-primary = primary
-sidebar-primary-foreground = primary-foreground
-sidebar-accent = secondary
-sidebar-accent-foreground = 

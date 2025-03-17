@@ -1,12 +1,14 @@
 import axios from "axios";
 import { toast } from "sonner";
 
-const localhost = "http://127.0.0.1:8000/api/v2/";
+const debug = import.meta.env.VITE_DUBUG == "true";
 
-const nepadvisor = "https://ems.nepadvisor.com/api/v2/";
+const baseURL = debug
+  ? "http://127.0.0.1:8000/api/v2/"
+  : "https://ems.nepadvisor.com/api/v2/";
 
 const axiosInstance = axios.create({
-  baseURL: nepadvisor,
+  baseURL: baseURL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -30,12 +32,9 @@ axiosInstance.interceptors.response.use(
       const refreshToken = localStorage.getItem("refresh");
       if (refreshToken) {
         try {
-          const { data } = await axios.post(
-            `${nepadvisor}auth/token/refresh/`,
-            {
-              refresh: refreshToken,
-            }
-          );
+          const { data } = await axios.post(`${baseURL}auth/token/refresh/`, {
+            refresh: refreshToken,
+          });
           localStorage.setItem("access", data.access);
           axiosInstance.defaults.headers.Authorization = `Bearer ${data.access}`;
           return axiosInstance(orginalRequest);

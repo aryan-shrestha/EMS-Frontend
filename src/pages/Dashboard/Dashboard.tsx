@@ -169,7 +169,7 @@ const Dashboard = () => {
             )
           }
           valueDescription={`${
-            attendanceData?.attendance?.total_working_hours?.duration ?? "-"
+            attendanceData?.attendance?.total_working_hours?.percentage ?? "-"
           }% of Working hour`}
         />
       </div>

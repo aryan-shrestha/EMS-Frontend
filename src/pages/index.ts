@@ -4,4 +4,6 @@ export { default as Feedback } from "./Feedback/Feedback";
 export { default as LeaveTracker } from "./LeaveTracker/LeaveTracker";
 export { default as LeaveRequestForm } from "./LeaveTracker/LeaveRequestForm";
 export { default as LeaveBalanceDialog } from "./LeaveTracker/LeaveBalanceDialog";
+export { default as Noticeboard } from "./Noticeboard/Noticeboard";
+export { default as SalaryTracker } from "./SalaryTracker/SalaryTracker";
 export { default as Login } from "./Login/Login";

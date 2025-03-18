@@ -53,13 +53,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: "Noticeboard",
-      url: "#",
+      url: "/noticeboard",
       isActive: false,
       icon: Megaphone,
     },
     {
       title: "Salary tracker",
-      url: "#",
+      url: "/salary-tracker",
       isActive: false,
       icon: Banknote,
     },

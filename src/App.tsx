@@ -10,7 +10,9 @@ import {
   Dashboard,
   Feedback,
   LeaveTracker,
+  Noticeboard,
   Login,
+  SalaryTracker,
 } from "./pages";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ModalProvider } from "./context/ModalContext";
@@ -34,6 +36,8 @@ function App() {
                 <Route path="attendance" element={<AttendancePage />} />
                 <Route path="feedback" element={<Feedback />} />
                 <Route path="leave-tracker" element={<LeaveTracker />} />
+                <Route path="noticeboard" element={<Noticeboard />} />
+                <Route path="salary-tracker" element={<SalaryTracker />} />
               </Route>
               <Route path="/login" element={<Login />} />
             </Routes>

@@ -34,7 +34,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<string | null>(() => {
     return localStorage.getItem("access");
   });
-  const [userDetail, setUserDetail] = useState<UserDetailType | null>(null);
+  const [userDetail, setUserDetail] = useState<UserDetailType | null>(() => {
+    return user ? jwtDecode(user) : null;
+  });
 
   const onLoginSuccess = (data: Record<string, any>) => {
     localStorage.setItem("access", data.access);

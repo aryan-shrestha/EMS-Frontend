@@ -14,10 +14,7 @@ import React, {
 import { Link, Outlet } from "react-router";
 import { GET } from "@/axios/axios";
 import AuthContext from "@/context/AuthContext";
-import {
-  LeaveBalance,
-  LeaveRequest,
-} from "@/types/interfaces/LeaveTrackerTypes";
+import { LeaveBalance, LeaveRequest } from "@/types/interfaces";
 import { useModal } from "@/context/ModalContext";
 import LeaveRequestForm from "./LeaveRequestForm";
 

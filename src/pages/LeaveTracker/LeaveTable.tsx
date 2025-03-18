@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LeaveRequest } from "@/types/interfaces/LeaveTrackerTypes";
+import { LeaveRequest } from "@/types/interfaces";
 import Table, { Column } from "../../custom-components/Table/Table";
 import { Badge } from "@/components/ui/badge";
 import { useModal } from "@/context/ModalContext";

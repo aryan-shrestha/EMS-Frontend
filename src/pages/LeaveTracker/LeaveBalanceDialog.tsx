@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import RouteModal from "@/custom-components/Dialog/Dialog";
-import { LeaveBalance } from "@/types/interfaces/LeaveTrackerTypes";
+import { LeaveBalance } from "@/types/interfaces";
 import { Loader2 } from "lucide-react";
 import React from "react";
 

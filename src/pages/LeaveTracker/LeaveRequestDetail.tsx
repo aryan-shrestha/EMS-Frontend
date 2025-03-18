@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useModal } from "@/context/ModalContext";
 import { showToast } from "@/lib/toast";
 
-import { LeaveRequest } from "@/types/interfaces/LeaveTrackerTypes";
+import { LeaveRequest } from "@/types/interfaces";
 import { Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 

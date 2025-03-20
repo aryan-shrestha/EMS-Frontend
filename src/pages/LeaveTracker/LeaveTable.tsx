@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { LeaveRequest } from "@/types/interfaces";
 import Table, { Column } from "../../custom-components/Table/Table";
 import { Badge } from "@/components/ui/badge";
@@ -149,6 +149,7 @@ const LeaveTable: React.FC<LeaveTableProps> = ({
           ) : (
             <Table<LeaveRequest> columns={columns} data={leaveRequests} />
           )}
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </CardContent>
       <CardFooter>

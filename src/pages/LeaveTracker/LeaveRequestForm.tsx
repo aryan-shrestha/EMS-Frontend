@@ -57,7 +57,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="flex flex-col pt-4 gap-6 w-">
+      <div className="flex flex-col pt-4 gap-6">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="leaveType">LeaveType</Label>
           <Select value={leaveType} onValueChange={setLeaveType}>

@@ -144,8 +144,6 @@ const LeaveTable: React.FC<LeaveTableProps> = ({
             >
               <Loader2 className="animate-spin" />
             </div>
-          ) : leaveRequests.length === 0 ? (
-            <div>No leave requests found.</div>
           ) : (
             <Table<LeaveRequest> columns={columns} data={leaveRequests} />
           )}

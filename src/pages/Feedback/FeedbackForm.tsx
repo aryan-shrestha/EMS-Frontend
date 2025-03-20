@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import AuthContext from "@/context/AuthContext";
 import { useModal } from "@/context/ModalContext";
 import { FeedbackCategory } from "@/types/interfaces/Feedback";
 import { Loader2 } from "lucide-react";
@@ -25,7 +24,6 @@ interface FeedbackFormProps {
 const FeedbackForm: React.FC<FeedbackFormProps> = ({
   onSuccess: fetchFeedbacks,
 }) => {
-  const auth = React.useContext(AuthContext);
   const { closeModal } = useModal();
 
   const [categories, setCategories] = React.useState<FeedbackCategory[]>([]);
@@ -53,7 +51,6 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
     event.preventDefault();
     setIsSubmitting(true);
     const payload = {
-      organization: auth?.userDetail?.organization,
       category_id: categoryId,
       title: title,
       description: description,

@@ -50,8 +50,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const access = localStorage.getItem("access");
 
     if (access) {
-      console.log(jwtDecode(access));
-
       const decodedUser: UserDetailType = jwtDecode(access);
       setUserDetail(decodedUser);
     }

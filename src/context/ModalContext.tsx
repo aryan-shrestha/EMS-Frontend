@@ -82,7 +82,7 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
               <DialogDescription>{state.description}</DialogDescription>
             )}
           </DialogHeader>
-          {state.content}
+          <div className="mt-6">{state.content}</div>
         </DialogContent>
       </Dialog>
     </ModalContext.Provider>

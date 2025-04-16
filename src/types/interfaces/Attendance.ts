@@ -1,3 +1,5 @@
+import { Employee } from "./Employee";
+
 export interface CheckInOut {
   id: number;
   attendance: number;
@@ -21,7 +23,7 @@ export interface Attendance {
   check_out_lat?: string | null;
   check_out_lng?: string | null;
   organization: number;
-  employee: number;
+  employee: Employee;
 }
 
 interface AttendanceMonthData {

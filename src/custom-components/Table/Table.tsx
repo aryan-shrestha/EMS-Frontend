@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface Column<T> {
   key: keyof T;
@@ -18,24 +19,39 @@ export interface Column<T> {
 interface TableProps<T> {
   columns: Column<T>[];
   data: T[];
+
+  isLoading?: boolean;
 }
 
-const Table = <T,>({ columns, data }: TableProps<T>) => {
+const Table = <T,>({ columns, data, isLoading }: TableProps<T>) => {
   return (
     <ShadcnTable>
       <TableHeader>
         <TableRow>
-          {columns.map((column) => (
-            <TableHead key={String(column.key)}>{column.header}</TableHead>
+          {columns.map((column, index) => (
+            <TableHead key={`${column}-${index}`}>{column.header}</TableHead>
           ))}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.length > 0 ? (
+        {isLoading ? (
+          <>
+            <TableRow>
+              {columns.map((column, index) => (
+                <TableCell key={`skeleton-${column}-${index}`}>
+                  <Skeleton className="w-[80%] h-[40px] rounded-full" />
+                </TableCell>
+              ))}
+            </TableRow>
+          </>
+        ) : data.length > 0 ? (
           data.map((row, rowIndex) => (
             <TableRow key={rowIndex}>
-              {columns.map((column) => (
-                <TableCell key={String(column.key)} className={cn("py-4")}>
+              {columns.map((column, index) => (
+                <TableCell
+                  key={`${String(column.key)}-${index}`}
+                  className={cn("py-4")}
+                >
                   {column.render
                     ? column.render(row[column.key], row)
                     : String(row[column.key] ?? "")}

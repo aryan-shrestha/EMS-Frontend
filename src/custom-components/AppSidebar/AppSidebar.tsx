@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 import { VersionSwitcher } from "./NavHeader";
 import {
@@ -14,90 +14,45 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import {
-  Banknote,
-  CircleCheckBig,
-  CloudSnow,
-  LayoutDashboardIcon,
-  ListChecks,
-  Megaphone,
-  MessageCircleQuestion,
-} from "lucide-react";
+
 import { NavUser } from "./NavUser";
+import { SidebarLink } from "@/types/interfaces";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [navMain, setnavMain] = React.useState([
-    {
-      title: "Dashboard",
-      url: "/",
-      isActive: true,
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Attendance",
-      url: "/attendance",
-      isActive: false,
-      icon: CircleCheckBig,
-    },
-    {
-      title: "Feedback",
-      url: "/feedback",
-      isActive: false,
-      icon: MessageCircleQuestion,
-    },
-    {
-      title: "Leave tracker",
-      url: "/leave-tracker",
-      isActive: false,
-      icon: CloudSnow,
-    },
-    {
-      title: "Noticeboard",
-      url: "/noticeboard",
-      isActive: false,
-      icon: Megaphone,
-    },
-    {
-      title: "Salary tracker",
-      url: "/salary-tracker",
-      isActive: false,
-      icon: Banknote,
-    },
-    {
-      title: "Task tracker",
-      url: "#",
-      isActive: false,
-      icon: ListChecks,
-    },
-  ]);
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  links: SidebarLink[];
+  handleClick: (title: string) => void;
+}
 
-  const handleNavClick = (clickedTitle: string) => {
-    setnavMain((prevNav) =>
-      prevNav.map((item) => ({
-        ...item,
-        isActive: item.title === clickedTitle,
-      }))
-    );
-  };
+const AppSidebar: React.FC<AppSidebarProps> = ({
+  links,
+  handleClick,
+  ...props
+}) => {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    let link = links.find((link) => link.url == location.pathname);
+    link !== undefined && handleClick(link.title);
+  }, []);
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <VersionSwitcher />
       </SidebarHeader>
       <SidebarContent className="py-2">
-        {/* We create a SidebarGroup for each parent. */}
         <SidebarGroup>
           <SidebarGroupLabel>Main menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navMain.map((item) => (
+              {links.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
                     isActive={item.isActive}
                     className="py-6"
                     onClick={() => {
-                      handleNavClick(item.title);
+                      handleClick(item.title);
                     }}
                   >
                     <Link to={item.url} className="py-5">
@@ -116,4 +71,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarFooter>
     </Sidebar>
   );
-}
+};
+
+export default AppSidebar;

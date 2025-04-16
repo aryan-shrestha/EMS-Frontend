@@ -25,7 +25,7 @@ const CheckInBtn: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `attendance/?date=${NepaliDate.now().format("YYYY-MM-DD")}`
+        `attendances/?date=${NepaliDate.now().format("YYYY-MM-DD")}`
       );
       setIsCheckedIn(hasCheckedIn(response.data));
     } catch (error) {
@@ -44,8 +44,8 @@ const CheckInBtn: React.FC = () => {
 
   const handleOnClick = async () => {
     let endpoint = isCheckedIn
-      ? "/attendance/check-out/"
-      : "/attendance/check-in/";
+      ? "/attendances/check-out/"
+      : "/attendances/check-in/";
 
     setIsLoading(true);
     await POST(

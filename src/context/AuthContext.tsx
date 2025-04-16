@@ -1,27 +1,23 @@
-import { createContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
 import { jwtDecode } from "jwt-decode";
-import { POST } from "@/axios/axios";
+import { GET, POST } from "@/axios/axios";
+import { User } from "@/types/interfaces/Auth";
+import { Loader2 } from "lucide-react";
 
 // Define the  type for authentication context
 interface AuthContextType {
-  user: string | null;
-  userDetail: UserDetailType | null;
+  accessToken: string | null;
+  user: User | null;
+  isLoading: boolean;
+  getUser: () => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-}
-
-interface UserDetailType {
-  token_type: string;
-  exp: number;
-  iat: number;
-  jti: number;
-  user_id: number;
-  email: string;
-  employee_id: number;
-  first_name: string;
-  last_name: string;
-  profile_picture: string;
-  organization: number;
 }
 
 // Create the context
@@ -32,49 +28,76 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<string | null>(() => {
-    return localStorage.getItem("access");
-  });
-  const [userDetail, setUserDetail] = useState<UserDetailType | null>(() => {
-    return user ? jwtDecode(user) : null;
-  });
+  const [accessToken, setAccessToken] = useState<string | null>(() =>
+    localStorage.getItem("access")
+  );
+  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() =>
+    accessToken ? jwtDecode(accessToken) : null
+  );
 
-  const onLoginSuccess = (data: Record<string, any>) => {
-    localStorage.setItem("access", data.access);
-    localStorage.setItem("refresh", data.refresh);
-    setUser(data.access);
-    window.location.href = "/";
-  };
-
-  useEffect(() => {
-    const access = localStorage.getItem("access");
-
-    if (access) {
-      const decodedUser: UserDetailType = jwtDecode(access);
-      setUserDetail(decodedUser);
+  // Fetch user info
+  const getUser = useCallback(async () => {
+    setIsUserLoading(true);
+    try {
+      await GET(`auth/accounts/me/`, {}, (data: User) => {
+        setUser(data);
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsUserLoading(false);
     }
   }, []);
 
+  // Handle login
   const login = async (email: string, password: string) => {
-    await POST(
-      "auth/token/",
-      {
-        email,
-        password,
-      },
-      onLoginSuccess
-    );
+    await POST("auth/token/", { email, password }, async (data) => {
+      localStorage.setItem("access", data.access);
+      localStorage.setItem("refresh", data.refresh);
+      setAccessToken(data.access);
+      await getUser();
+      window.location.href = "/";
+    });
   };
 
+  // Handle logout
   const logout = () => {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
+    setAccessToken(null);
     setUser(null);
     window.location.href = "/login";
   };
 
-  return (
-    <AuthContext.Provider value={{ user, userDetail, login, logout }}>
+  // Fetch user on mount
+  useEffect(() => {
+    if (accessToken) {
+      getUser();
+    } else {
+      setIsUserLoading(false);
+    }
+  }, [accessToken, getUser]);
+
+  const isLoading = isUserLoading;
+  return isLoading ? (
+    <div className="h-screen w-full flex items-center justify-center">
+      <div className="flex flex-col items-center justify-center gap-2">
+        <Loader2 className="animate-spin" />
+        <span>Loading...</span>
+      </div>
+    </div>
+  ) : (
+    <AuthContext.Provider
+      value={{
+        accessToken,
+        user,
+        isLoading,
+        getUser,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

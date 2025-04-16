@@ -77,7 +77,7 @@ const AttendancePage = () => {
           <CardContent>
             <div className="flex flex-col gap-6 justify-between md:flex-row md:items-center md:gap-0">
               <h1 className="text-2xl font-bold capitalize text-gray-900 dark:text-white">
-                Good morning {auth?.userDetail?.first_name} !
+                Good morning {auth?.user?.employee?.first_name} !
               </h1>
               <CheckInBtn />
             </div>

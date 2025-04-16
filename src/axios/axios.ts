@@ -39,7 +39,6 @@ axiosInstance.interceptors.response.use(
           axiosInstance.defaults.headers.Authorization = `Bearer ${data.access}`;
           return axiosInstance(orginalRequest);
         } catch (refreshError) {
-          console.error("Refresh token is invalid or expired");
           localStorage.removeItem("access");
           localStorage.removeItem("refresh");
           window.location.href = "/login";
@@ -53,17 +52,31 @@ axiosInstance.interceptors.response.use(
 export default axiosInstance;
 
 // Generic error handler function
-const handleApiError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
-    const errorMessage =
-      error.response?.data?.error ||
-      error.response?.data.detail ||
-      "Something went wrong!";
-    toast.error(errorMessage);
-  } else {
-    toast.error("Something went wrong");
-  }
+
+type APIErrorResponse = {
+  errors: {
+    [key: string]: string[] | string;
+  };
 };
+export function handleAPIError(error: any): APIErrorResponse {
+  if (error.response && error.response.data) {
+    const errorData = error.response.data as APIErrorResponse;
+
+    Object.entries(errorData.errors).forEach(([key, messages]) => {
+      if (Array.isArray(messages)) {
+        messages.forEach((message) => {
+          toast.error(`${key}: ${message}`);
+        });
+      } else {
+        toast.error(messages);
+      }
+    });
+
+    return errorData;
+  }
+  toast.error("An unexpected error occurred.");
+  return { errors: { detail: ["An unexpected error occurred."] } };
+}
 
 export const GET = async <T>(
   url: string,
@@ -71,10 +84,10 @@ export const GET = async <T>(
   callbackFn: (data: T) => void
 ): Promise<void> => {
   try {
-    const response = await axiosInstance.get<T>(url, { ...params });
+    const response = await axiosInstance.get<T>(url, { params });
     callbackFn(response.data);
   } catch (error) {
-    handleApiError(error);
+    handleAPIError(error);
   }
 };
 
@@ -87,7 +100,7 @@ export const POST = async (
     const response = await axiosInstance.post(url, payload);
     callbackFn(response.data);
   } catch (error) {
-    handleApiError(error);
+    handleAPIError(error);
   }
 };
 
@@ -100,7 +113,7 @@ export const PUT = async <T>(
     const response = await axiosInstance.put<T>(url, payload);
     callbackFn(response.data);
   } catch (error) {
-    handleApiError(error);
+    handleAPIError(error);
   }
 };
 
@@ -114,7 +127,7 @@ export const PATCH = async <T>(
     const response = await axiosInstance.patch<T>(url, payload);
     callbackFn(response.data);
   } catch (error) {
-    handleApiError(error);
+    handleAPIError(error);
   }
 };
 
@@ -127,6 +140,6 @@ export const DELETE = async <T>(
     const response = await axiosInstance.delete<T>(url);
     callbackFn(response.data);
   } catch (error) {
-    handleApiError(error);
+    handleAPIError(error);
   }
 };

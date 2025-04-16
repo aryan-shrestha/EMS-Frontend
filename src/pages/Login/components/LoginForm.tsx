@@ -1,6 +1,4 @@
-import { useState, useContext } from "react";
-import axios from "axios";
-
+import { useState, useContext, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,18 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Toaster, toast } from "sonner";
+import { Toaster } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import AuthContext from "@/context/AuthContext";
 import { Loader2 } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
+import { showToast } from "@/lib/toast";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const auth = useContext(AuthContext);
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsloading] = useState<boolean>(false);
@@ -33,21 +36,23 @@ export function LoginForm({
       try {
         await auth.login(email, password);
       } catch (error) {
-        if (axios.isAxiosError(error)) {
-          toast.error(error.response?.data.detail);
-          setPassword("");
-        } else {
-          console.log("Unexpected Error: ", error);
-        }
+        setPassword("");
       } finally {
         setIsloading(false);
       }
     }
   };
 
+  useEffect(() => {
+    if (location.state?.message) {
+      showToast(location.state.message, location.state.type);
+      navigate(".", { replace: true, state: {} });
+    }
+  }, [location.state]);
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Toaster position="top-center" expand={true} richColors />
+      <Toaster position="top-center" expand={true} />
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl capitalize">
@@ -90,9 +95,17 @@ export function LoginForm({
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading && <Loader2 className="animate-spin" />}
-                Login
+                {isLoading && <Loader2 className="animate-spin" />} Login
               </Button>
+              <Button variant="outline" className="w-full cursor-pointer">
+                Sign In With Google
+              </Button>
+            </div>
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{" "}
+              <Link to="/signup" className="underline underline-offset-4">
+                Sign up
+              </Link>
             </div>
           </form>
         </CardContent>

@@ -11,3 +11,4 @@ export * from "./Attendance";
 export * from "./LeaveTrackerTypes";
 export * from "./Noticeboard";
 export * from "./SalaryTracker";
+export * from "./SidebarTypes";

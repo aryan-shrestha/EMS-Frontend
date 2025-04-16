@@ -46,22 +46,22 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={auth?.userDetail?.profile_picture}
-                  alt={`${auth?.userDetail?.first_name} ${auth?.userDetail?.last_name}`}
+                  src=""
+                  alt={`${auth?.user?.employee?.first_name} ${auth?.user?.employee?.last_name}`}
                 />
                 <AvatarFallback className="rounded-lg">
                   {getAvatarFallback(
-                    auth?.userDetail?.first_name,
-                    auth?.userDetail?.last_name
+                    auth?.user?.employee?.first_name,
+                    auth?.user?.employee?.last_name
                   )}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold capitalize">
-                  {`${auth?.userDetail?.first_name} ${auth?.userDetail?.last_name}`}
+                  {`${auth?.user?.employee?.first_name} ${auth?.user?.employee?.last_name}`}
                 </span>
                 <span className="truncate text-xs">
-                  {auth?.userDetail?.email}
+                  {auth?.user?.employee?.email}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -77,22 +77,22 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={auth?.userDetail?.profile_picture}
-                    alt={`${auth?.userDetail?.first_name} ${auth?.userDetail?.last_name}`}
+                    src={""}
+                    alt={`${auth?.user?.employee?.first_name} ${auth?.user?.employee?.last_name}`}
                   />
                   <AvatarFallback className="rounded-lg">
                     {getAvatarFallback(
-                      auth?.userDetail?.first_name,
-                      auth?.userDetail?.last_name
+                      auth?.user?.employee?.first_name,
+                      auth?.user?.employee?.last_name
                     )}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold capitalize">
-                    {`${auth?.userDetail?.first_name} ${auth?.userDetail?.last_name}`}
+                    {`${auth?.user?.employee?.first_name} ${auth?.user?.employee?.last_name}`}
                   </span>
                   <span className="truncate text-xs">
-                    {auth?.userDetail?.email}
+                    {auth?.user?.employee?.email}
                   </span>
                 </div>
               </div>

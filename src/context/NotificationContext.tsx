@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import axios from "@/axios/axios";
+import axios, { GET } from "@/axios/axios";
 
 import { toast } from "sonner";
 import { Notification } from "@/types/interfaces";
@@ -20,17 +20,18 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
   undefined
 );
 
-export const NotificationProvider = ({
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   children,
-}: NotificationProviderProps) => {
+}) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`notifications/my/`);
-      setNotifications(response.data);
+      await GET(`notifications/my/`, {}, (data: Notification[]) => {
+        setNotifications(data);
+      });
     } catch (error) {
       console.error(error);
       toast.error("Error occured while fetching notification");
